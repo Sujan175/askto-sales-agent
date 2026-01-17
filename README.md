@@ -1,16 +1,5 @@
 # AskTo
 
-AskTo is an intelligent, voice-enabled AI interviewing platform designed to conduct automated technical and behavioral interviews. It leverages **Pipecat** for real-time voice interaction and **Next.js** for a seamless user experience.
-
-## 🚀 Features
-
-- **Real-time Voice Interaction**: Conversational AI that speaks and listens in real-time.
-- **Dynamic Interview Context**: Generates interview questions based on user profiles and job descriptions.
-- **Secure Authentication**: JWT-based authentication to ensure secure access to interview sessions.
-- **Interview Recording**: Captures transcripts and event logs for review.
-- **Data Persistence**: Saves interview details and results to MongoDB.
-- **Responsive UI**: Modern interface built with Tailwind CSS and Shadcn UI.
-
 ## 🛠️ Tech Stack
 
 ### Client (`/client`)
