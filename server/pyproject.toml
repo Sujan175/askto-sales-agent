@@ -1,0 +1,35 @@
+[project]
+name = "askto"
+version = "0.1.0"
+description = "Voice AI bot built with Pipecat"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.121.3",
+    "pipecat-ai[daily,elevenlabs,local-smart-turn-v3,openrouter,runner,silero,webrtc]",
+    "pipecatcloud>=0.2.12",
+    "pydantic>=2.12.5",
+    "pymongo[srv]>=4.15.4",
+    "sarvamai>=0.1.22",
+    "uvicorn>=0.38.0",
+    # LangGraph dependencies
+    "langgraph>=0.2.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.2.0",
+    # Memory storage
+    "redis>=5.0.0",
+    "asyncpg>=0.29.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    # HTTP client for API calls
+    "httpx>=0.27.0",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.404,<2",
+    "ruff>=0.12.11,<1",
+]
+
+[tool.ruff]
+line-length = 100
+[tool.ruff.lint]
+select = ["I"]

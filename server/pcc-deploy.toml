@@ -1,0 +1,8 @@
+agent_name = "askto"
+image = "ghcr.io/moonshotedx/askto/bot-server:latest"
+secret_set = "askto-bot"
+image_credentials = "askto-bot-server"
+
+[scaling]
+	min_agents = 1
+	max_agents = 5
