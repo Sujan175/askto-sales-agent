@@ -30,7 +30,7 @@ Extract the following if mentioned:
 - objections_raised: Any objections to the credit card offer
 
 Return a JSON object with ONLY the fields that have clear values from the user's message.
-Return {} if no relevant information can be extracted.
+Return an empty JSON object if no relevant information can be extracted.
 
 User message: {message}
 

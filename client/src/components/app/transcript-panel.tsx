@@ -94,7 +94,7 @@ export function TranscriptPanel({
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white/70">
             <MessageSquareQuote className="w-6 h-6 mb-2 text-white/50" />
             <p className="text-xs text-center">
-              Start the interview to initiate transcription
+              Start the call to initiate transcription
             </p>
           </div>
         ) : (

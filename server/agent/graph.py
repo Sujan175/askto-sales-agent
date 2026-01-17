@@ -212,6 +212,12 @@ class SalesAgentRunner:
                 turn_count=new_turn_count,
             )
             
+            # Always save messages to Redis (important for conversation continuity)
+            if user_input:
+                await self.redis.add_message(session_id, "user", user_input)
+            if response:
+                await self.redis.add_message(session_id, "assistant", response)
+            
             # Update Redis with identity info when verified
             if result.get("identity_verified"):
                 await self.redis.update_session_metadata(

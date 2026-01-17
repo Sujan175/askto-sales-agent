@@ -10,7 +10,7 @@ from pipecat.frames.frames import (
     LLMContextFrame,
     LLMFullResponseEndFrame,
     LLMFullResponseStartFrame,
-    TextFrame,
+    LLMTextFrame,
     LLMMessagesFrame,
 )
 from pipecat.processors.frame_processor import FrameDirection
@@ -138,17 +138,17 @@ class LangGraphLLMService(LLMService):
             response = result.get("response", "")
             
             if response:
-                # Yield response as text frame
-                yield TextFrame(text=response)
+                # Yield response as LLM text frame (RTVI will capture this for transcripts)
+                yield LLMTextFrame(text=response)
                 
                 logger.debug(f"Agent response: {response[:100]}...")
             else:
                 logger.warning("Empty response from agent")
-                yield TextFrame(text="I'm sorry, could you repeat that?")
+                yield LLMTextFrame(text="I'm sorry, could you repeat that?")
                 
         except Exception as e:
             logger.error(f"Error in LangGraph processing: {e}")
-            yield TextFrame(text="I apologize, I'm having a brief technical issue. Could you repeat that?")
+            yield LLMTextFrame(text="I apologize, I'm having a brief technical issue. Could you repeat that?")
         
         # Yield end frame
         yield LLMFullResponseEndFrame()

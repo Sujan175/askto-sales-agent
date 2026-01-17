@@ -73,7 +73,7 @@ const AppContent = ({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [showDisconnectAlert, setShowDisconnectAlert] = useState(false);
   const [showCoinExhausted, setShowCoinExhausted] = useState(false);
-  const [isEndingInterview, setIsEndingInterview] = useState(false);
+  const [isEndingCall, setIsEndingCall] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
   const [voiceId, setVoiceId] = useState<string | null>(null);
   const { toggleSidebar, open } = useSidebar();
@@ -337,7 +337,7 @@ const AppContent = ({
           });
         } else {
           toast.error("Connection Failed", {
-            description: "Failed to start the interview. Please try again.",
+            description: "Failed to start the call. Please try again.",
           });
         }
         console.error("Connection error:", error);
@@ -369,65 +369,78 @@ const AppContent = ({
           }
         }
 
+        // Only save interview data if we have userId and jobId (interview mode)
         if (!userId || !jobId) {
-          throw new Error("Missing user_id or job_id. Cannot save interview.");
-        }
-
-        const details = {
-          user_id: userId,
-          job_id: jobId,
-          transcript: transcript,
-          created_at: new Date(),
-          updated_at: new Date(),
-          id: Math.random().toString(36).slice(2),
-          transport_used: transportType,
-          voice_id: voiceId || "unknown",
-          token_used: tokensUsed,
-          max_token: maxTokens,
-          event_logs: events,
-          coins_used: coinsUsed,
-          max_coins: maxCoins,
-          tokens_per_coin: tokensPerCoin,
-          session_id: sessionId,
-        };
-
-        try {
-          await saveInterview(details);
-          saveSuccessful = true;
-        } catch (saveError: any) {
-          // Handle authentication errors specifically
-          if (saveError.status === 401 || saveError.status === 403) {
-            toast.error("Authentication failed", {
-              description:
-                saveError.message ||
-                "Your session has expired. Please log in again.",
-            });
-            // Clear stored data on auth failure
-            localStorage.removeItem("authToken");
-            sessionStorage.removeItem("interviewData");
-          } else {
-            // For other errors, show the actual error message
-            toast.error("Failed to save interview", {
-              description:
-                saveError.message ||
-                "There was an error saving your interview data.",
-            });
-          }
-          // Don't throw - we'll handle cleanup below
-        }
-
-        // Only clear session data if save was successful
-        if (saveSuccessful) {
+          console.log("No interview data to save (sales agent mode)");
+          // Clear session data without saving
           sessionStorage.removeItem("sessionId");
           sessionStorage.removeItem("transcript");
           sessionStorage.removeItem("events");
           sessionStorage.removeItem("tokensUsed");
-
+          
           setSessionId(null);
           setTranscript([]);
           setEvents([]);
           setTokensUsed(0);
           setCoinsUsed(0);
+          saveSuccessful = true;
+        } else {
+          const details = {
+            user_id: userId,
+            job_id: jobId,
+            transcript: transcript,
+            created_at: new Date(),
+            updated_at: new Date(),
+            id: Math.random().toString(36).slice(2),
+            transport_used: transportType,
+            voice_id: voiceId || "unknown",
+            token_used: tokensUsed,
+            max_token: maxTokens,
+            event_logs: events,
+            coins_used: coinsUsed,
+            max_coins: maxCoins,
+            tokens_per_coin: tokensPerCoin,
+            session_id: sessionId,
+          };
+
+          try {
+            await saveInterview(details);
+            saveSuccessful = true;
+          } catch (saveError: any) {
+            // Handle authentication errors specifically
+            if (saveError.status === 401 || saveError.status === 403) {
+              toast.error("Authentication failed", {
+                description:
+                  saveError.message ||
+                  "Your session has expired. Please log in again.",
+              });
+              // Clear stored data on auth failure
+              localStorage.removeItem("authToken");
+              sessionStorage.removeItem("interviewData");
+            } else {
+              // For other errors, show the actual error message
+              toast.error("Failed to save interview", {
+                description:
+                  saveError.message ||
+                  "There was an error saving your interview data.",
+              });
+            }
+            // Don't throw - we'll handle cleanup below
+          }
+
+          // Only clear session data if save was successful
+          if (saveSuccessful) {
+            sessionStorage.removeItem("sessionId");
+            sessionStorage.removeItem("transcript");
+            sessionStorage.removeItem("events");
+            sessionStorage.removeItem("tokensUsed");
+
+            setSessionId(null);
+            setTranscript([]);
+            setEvents([]);
+            setTokensUsed(0);
+            setCoinsUsed(0);
+          }
         }
       }
 
@@ -447,8 +460,8 @@ const AppContent = ({
 
       // Only show success toast if we have a session and save was successful
       if (sessionId && saveSuccessful) {
-        toast.success("Session ended successfully", {
-          description: "Your interview has ended. Have a great day!",
+        toast.success("Call ended successfully", {
+          description: "Your call has ended. Have a great day!",
         });
       }
     } catch (error) {
@@ -458,19 +471,19 @@ const AppContent = ({
           "There was an error ending your session. Please try again.",
       });
     } finally {
-      setIsEndingInterview(false);
+      setIsEndingCall(false);
       setShowCoinExhausted(false);
       setShowDisconnectAlert(false);
     }
   };
 
   const handleDisconnectConfirmation = async () => {
-    setIsEndingInterview(true);
+    setIsEndingCall(true);
     await handleDisconnectWrapper();
   };
 
   const handleCoinExhaustedEnd = async () => {
-    setIsEndingInterview(true);
+    setIsEndingCall(true);
     await handleDisconnectWrapper();
   };
 
@@ -519,8 +532,8 @@ const AppContent = ({
                   size="md"
                   onConnect={handleConnectWrapper}
                   onDisconnect={handleDisconnectClick}
-                  connectText="Start Interview"
-                  disconnectText="End Interview"
+                  connectText="Start Call"
+                  disconnectText="End Call"
                   isConnected={isConnected}
                   isConnecting={isConnecting}
                 />
@@ -553,14 +566,14 @@ const AppContent = ({
         open={showDisconnectAlert}
         onOpenChange={setShowDisconnectAlert}
         onConfirm={handleDisconnectConfirmation}
-        isEnding={isEndingInterview}
+        isEnding={isEndingCall}
       />
 
       <CoinsExhaustedDialog
         open={showCoinExhausted}
         onOpenChange={setShowCoinExhausted}
-        onEndInterview={handleCoinExhaustedEnd}
-        isEnding={isEndingInterview}
+        onEndCall={handleCoinExhaustedEnd}
+        isEnding={isEndingCall}
       />
     </div>
   );

@@ -1,9 +1,8 @@
 """LangGraph state definitions for the sales agent."""
 
-from typing import Annotated, Literal, Optional
+from typing import Literal, Optional
 from uuid import UUID
 
-from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
@@ -108,8 +107,8 @@ class ExtractedInfo(BaseModel):
 class AgentState(TypedDict):
     """Main state for the LangGraph sales agent."""
     
-    # Conversation messages - uses add_messages reducer for proper handling
-    messages: Annotated[list[Message], add_messages]
+    # Conversation messages - simple list, manually managed
+    messages: list[Message]
     
     # Identity
     phone_number: Optional[str]

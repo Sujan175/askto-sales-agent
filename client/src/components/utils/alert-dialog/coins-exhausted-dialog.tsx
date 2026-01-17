@@ -12,14 +12,14 @@ import { Loader2 } from "lucide-react";
 interface CoinsExhaustedDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onEndInterview: () => void;
+    onEndCall: () => void;
     isEnding: boolean;
 }
 
 export function CoinsExhaustedDialog({
     open,
     onOpenChange,
-    onEndInterview,
+    onEndCall,
     isEnding,
 }: CoinsExhaustedDialogProps) {
     return (
@@ -28,12 +28,12 @@ export function CoinsExhaustedDialog({
                 <AlertDialogHeader>
                     <AlertDialogTitle>Coins Exhausted</AlertDialogTitle>
                     <AlertDialogDescription>
-                        You have exhausted all your coins. Please end the interview to start a new session.
+                        You have exhausted all your coins. Please end the call to start a new session.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <Button
-                        onClick={onEndInterview}
+                        onClick={onEndCall}
                         disabled={isEnding}
                         className="min-w-[120px]"
                         variant="destructive"
@@ -44,7 +44,7 @@ export function CoinsExhaustedDialog({
                                 Ending...
                             </>
                         ) : (
-                            "End Interview"
+                            "End Call"
                         )}
                     </Button>
                 </AlertDialogFooter>

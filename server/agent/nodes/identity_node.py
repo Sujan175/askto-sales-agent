@@ -74,35 +74,26 @@ async def identity_node(state: AgentState, config: RunnableConfig) -> dict:
     is_first_turn = turn_count == 0 or not current_input
     
     if is_first_turn and not phone_number:
-        # First interaction - greet and ask for phone
+        # First interaction - warm introduction
         response = (
-            "Hello! This is calling from HDFC Bank regarding an exclusive offer on our Swiggy Credit Card. "
-            "Before we proceed, may I know your phone number so I can assist you better?"
+            "Hi there! I'm calling from HDFC Bank. "
+            "I wanted to have a quick chat about credit cards. "
+            "Do you currently use any credit cards?"
         )
+        # Merge with existing messages instead of replacing
+        updated_messages = list(messages) + [{"role": "assistant", "content": response}]
         return {
             "current_response": response,
-            "messages": [{"role": "assistant", "content": response}],
+            "messages": updated_messages,
             "turn_count": state.get("turn_count", 0) + 1,
         }
     
-    # Try to extract phone number from current input
+    # POC DEMO: Skip phone extraction and use test number
+    # Any user response after greeting will proceed with demo phone
     if not phone_number and current_input:
-        extracted_phone = extract_phone_number(current_input)
-        
-        if extracted_phone:
-            phone_number = extracted_phone
-            logger.info(f"Extracted phone number: ***{phone_number[-4:]}")
-        else:
-            # Couldn't extract phone, ask again
-            response = (
-                "I didn't quite catch that. Could you please share your 10-digit mobile number? "
-                "For example, 98765 43210."
-            )
-            return {
-                "current_response": response,
-                "messages": [{"role": "assistant", "content": response}],
-                "turn_count": state.get("turn_count", 0) + 1,
-            }
+        # Use demo phone number for POC
+        phone_number = "9999999999"
+        logger.info(f"POC Demo: Using test phone number ***{phone_number[-4:]}")
     
     # We have a phone number - look up or create user
     if phone_number and postgres:
@@ -112,57 +103,30 @@ async def identity_node(state: AgentState, config: RunnableConfig) -> dict:
             
             logger.info(f"User {'created' if is_new else 'found'}: {user.id}")
             
-            # Build appropriate greeting
-            if is_new:
-                response = (
-                    f"Thank you! I've noted your number ending in {phone_number[-4:]}. "
-                    "I'm excited to tell you about our HDFC Swiggy Credit Card - "
-                    "it's perfect for food delivery enthusiasts. "
-                    "To start, may I know your name?"
-                )
-            else:
-                name = user.name or f"customer ending in {phone_number[-4:]}"
-                response = (
-                    f"Welcome back, {name}! Great to speak with you again. "
-                    "I'm following up on our conversation about the HDFC Swiggy Credit Card. "
-                    "How have you been?"
-                )
-            
+            # POC Demo: Skip the greeting after identity, let response_node take over
+            # Just return identity state, no response here
             return {
                 "phone_number": phone_number,
                 "identity_verified": True,
                 "user_id": str(user.id),
                 "user_context": user_context,
                 "is_new_user": is_new,
-                "current_response": response,
-                "messages": [{"role": "assistant", "content": response}],
-                "turn_count": state.get("turn_count", 0) + 1,
             }
             
         except Exception as e:
             logger.error(f"Error during user lookup: {e}")
-            # Continue without persistence
+            # Continue without persistence - POC Demo mode
             return {
                 "phone_number": phone_number,
                 "identity_verified": True,
                 "is_new_user": True,
-                "current_response": (
-                    f"Thank you! I've noted your number. "
-                    "Let me tell you about our HDFC Swiggy Credit Card. "
-                    "May I know your name?"
-                ),
-                "messages": [{"role": "assistant", "content": (
-                    f"Thank you! I've noted your number. "
-                    "Let me tell you about our HDFC Swiggy Credit Card. "
-                    "May I know your name?"
-                )}],
                 "turn_count": state.get("turn_count", 0) + 1,
             }
     
-    # Fallback - should not reach here normally
-    response = "Could you please share your phone number so I can assist you better?"
+    # Fallback for POC Demo - just proceed
+    logger.warning("Identity node fallback reached")
     return {
-        "current_response": response,
-        "messages": [{"role": "assistant", "content": response}],
-        "turn_count": state.get("turn_count", 0) + 1,
+        "phone_number": "9999999999",
+        "identity_verified": True,
+        "is_new_user": True,
     }

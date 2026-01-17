@@ -33,25 +33,16 @@ async def memory_writer_node(state: AgentState, config: RunnableConfig) -> dict:
     postgres: PostgresMemory = configurable.get("postgres")
     redis: RedisMemory = configurable.get("redis")
     
-    # Store to Redis (short-term memory)
+    # Update Redis session metadata (messages are saved in graph.py to avoid duplicates)
     if redis and session_id:
         try:
-            # Add user message
-            if current_input:
-                await redis.add_message(session_id, "user", current_input)
-            
-            # Add assistant response
-            if current_response:
-                await redis.add_message(session_id, "assistant", current_response)
-            
-            # Update session metadata
             await redis.update_session_metadata(
                 session_id,
                 turn_count=turn_count,
                 identity_verified=state.get("identity_verified", False),
             )
             
-            logger.debug(f"Stored turn {turn_count} to Redis")
+            logger.debug(f"Updated Redis metadata for turn {turn_count}")
             
         except Exception as e:
             logger.error(f"Redis write error: {e}")

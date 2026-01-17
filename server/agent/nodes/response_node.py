@@ -19,10 +19,23 @@ async def response_node(state: AgentState, config: RunnableConfig) -> dict:
     3. Calls the LLM
     4. Returns the response
     """
+    logger.info("=== RESPONSE NODE START ===")
+    
     session_type = state.get("session_type", "discovery")
     user_context = state.get("user_context") or {}
     messages = state.get("messages", [])
     current_input = state.get("current_input", "")
+    
+    # Debug: Log what messages are in state
+    logger.info(f"Response node received {len(messages)} messages in state")
+    for i, m in enumerate(messages):
+        if isinstance(m, dict):
+            role = m.get("role", "?")
+            content = m.get("content", "")[:60]
+        else:
+            role = getattr(m, "role", "?")
+            content = str(getattr(m, "content", ""))[:60]
+        logger.info(f"  State msg [{i}]: {role}: {content}")
     
     # Get the appropriate prompt
     if session_type == "discovery":
@@ -38,17 +51,37 @@ async def response_node(state: AgentState, config: RunnableConfig) -> dict:
     llm_messages = [{"role": "system", "content": system_prompt}]
     
     # Add conversation history (limit to recent messages for token efficiency)
-    history_messages = [m for m in messages if m.get("role") in ("user", "assistant")]
+    # Handle both dict and LangChain message objects
+    def get_msg_role(m):
+        return m.get("role") if isinstance(m, dict) else getattr(m, "role", None)
+    
+    def get_msg_content(m):
+        return m.get("content", "") if isinstance(m, dict) else getattr(m, "content", "")
+    
+    history_messages = [m for m in messages if get_msg_role(m) in ("user", "assistant", "human", "ai")]
     # Keep last 10 turns for context
     for msg in history_messages[-20:]:
+        role = get_msg_role(msg)
+        # Normalize LangChain role names
+        if role == "human":
+            role = "user"
+        elif role == "ai":
+            role = "assistant"
         llm_messages.append({
-            "role": msg["role"],
-            "content": msg["content"],
+            "role": role,
+            "content": get_msg_content(msg),
         })
     
     # Add current user input if not already in messages
-    if current_input and (not history_messages or history_messages[-1].get("content") != current_input):
+    last_content = get_msg_content(history_messages[-1]) if history_messages else ""
+    if current_input and last_content != current_input:
         llm_messages.append({"role": "user", "content": current_input})
+    
+    # Debug: Log the conversation being sent to LLM
+    logger.info(f"Sending {len(llm_messages)} messages to LLM (including system prompt)")
+    for i, msg in enumerate(llm_messages[1:], 1):  # Skip system prompt in log
+        content = msg['content'][:80] if len(msg['content']) > 80 else msg['content']
+        logger.info(f"  [{i}] {msg['role']}: {content}")
     
     # Get LLM client from config
     llm_client = config.get("configurable", {}).get("llm_client")
@@ -63,9 +96,14 @@ async def response_node(state: AgentState, config: RunnableConfig) -> dict:
         # Fallback - use OpenRouter directly
         response = await call_openrouter(llm_messages)
     
+    # Merge the new assistant response with existing messages
+    updated_messages = list(messages) + [{"role": "assistant", "content": response}]
+    
+    logger.info(f"Response node returning {len(updated_messages)} messages")
+    
     return {
         "current_response": response,
-        "messages": [{"role": "assistant", "content": response}],
+        "messages": updated_messages,
         "turn_count": state.get("turn_count", 0) + 1,
     }
 

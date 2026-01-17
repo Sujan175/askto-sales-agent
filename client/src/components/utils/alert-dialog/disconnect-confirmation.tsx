@@ -27,9 +27,9 @@ export function DisconnectConfirmation({
         <AlertDialog open={open} onOpenChange={isEnding ? () => {} : onOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>End Session?</AlertDialogTitle>
+                    <AlertDialogTitle>End Call?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will end your current session. All transcript and event data will be saved to the database, and your local session data will be cleared. This action cannot be undone.
+                        This will end your current call. All transcript and event data will be saved, and your local session data will be cleared. This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -46,7 +46,7 @@ export function DisconnectConfirmation({
                                 Ending...
                             </>
                         ) : (
-                            "End Session"
+                            "End Call"
                         )}
                     </Button>
                 </AlertDialogFooter>
