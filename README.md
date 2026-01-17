@@ -1,4 +1,4 @@
-# AskTo - AI Interviewer Platform
+# AskTo
 
 AskTo is an intelligent, voice-enabled AI interviewing platform designed to conduct automated technical and behavioral interviews. It leverages **Pipecat** for real-time voice interaction and **Next.js** for a seamless user experience.
 
